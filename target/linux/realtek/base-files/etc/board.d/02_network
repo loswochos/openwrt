@@ -134,6 +134,7 @@ realtek_setup_macs()
 	zyxel,gs1900-24ep-a1|\
 	zyxel,gs1900-24hp-a1|\
 	zyxel,gs1900-24hp-b1|\
+	zyxel,gs1900-48hp-v1|\
 	zyxel,gs1900-48-a1|\
 	zyxel,gs1900-8-a1|\
 	zyxel,gs1900-8-b1|\
@@ -225,6 +226,9 @@ realtek_setup_poe()
 	zyxel,gs1900-24hp-a1|\
 	zyxel,gs1900-24hp-b1)
 		ucidef_set_poe 170 "$(filter_port_list "$lan_list" "lan25 lan26")"
+		;;
+	zyxel,gs1900-48hp-v1)
+		ucidef_set_poe 170 "$(filter_port_list "$lan_list" "lan49 lan50")"
 		;;
 	esac
 }

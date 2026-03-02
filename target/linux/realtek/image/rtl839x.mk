@@ -98,6 +98,16 @@ define Device/zyxel_gs1900-48-a1
 endef
 TARGET_DEVICES += zyxel_gs1900-48-a1
 
+define Device/zyxel_gs1900-48hp-v1
+  $(Device/zyxel_gs1900)
+  SOC := rtl8393
+  DEVICE_MODEL := GS1900-48HP
+  ZYXEL_VERS := AAHO
+  SUPPORTED_DEVICES += zyxel,gs1900-48hp-v1
+  DEVICE_PACKAGES += realtek-poe
+endef
+TARGET_DEVICES += zyxel_gs1900-48hp-v1
+
 define Device/zyxel_gs1920-24hp
 ifeq ($(IB),)
   ARTIFACTS := loader.bin
