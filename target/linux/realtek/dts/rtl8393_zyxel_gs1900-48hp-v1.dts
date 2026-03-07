@@ -81,6 +81,12 @@
 		mod-def0-gpio = <&gpio1 32 GPIO_ACTIVE_LOW>;
 		tx-disable-gpio = <&gpio1 29 GPIO_ACTIVE_HIGH>;
 	};
+
+	poe: poe-controller {
+		compatible = "realtek,poe-mcu";
+		uart = <&uart1>;
+		status = "okay";
+	};
 };
 
 &uart1 {
@@ -106,16 +112,9 @@
 			line-name = "poe-mcu-enable";
 		};
 
-		poe_reset {
-			gpio-hog;
-			gpios = <36 GPIO_ACTIVE_LOW>;
-			output-low;
-			line-name = "poe-mcu-reset";
-		};
-
 		led-controller {
 			compatible = "realtek,rtl8231-leds";
-			status = "disabled";
+			status = "okay";
 		};
 	};
 };
