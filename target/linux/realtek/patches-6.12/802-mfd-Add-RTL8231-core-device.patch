@@ -24,9 +24,9 @@ Signed-off-by: Sander Vanheule <sander@svanheule.net>
 ---
  drivers/mfd/Kconfig         |   9 ++
  drivers/mfd/Makefile        |   1 +
- drivers/mfd/rtl8231.c       | 193 ++++++++++++++++++++++++++++++++++++
+ drivers/mfd/rtl8231.c       | 220 ++++++++++++++++++++++++++++++++++++++++++++
  include/linux/mfd/rtl8231.h |  71 +++++++++++++
- 4 files changed, 274 insertions(+)
+ 4 files changed, 301 insertions(+)
  create mode 100644 drivers/mfd/rtl8231.c
  create mode 100644 include/linux/mfd/rtl8231.h
 
@@ -60,7 +60,7 @@ Signed-off-by: Sander Vanheule <sander@svanheule.net>
  obj-$(CONFIG_MFD_RT5120)	+= rt5120.o
 --- /dev/null
 +++ b/drivers/mfd/rtl8231.c
-@@ -0,0 +1,193 @@
+@@ -0,0 +1,220 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +
 +#include <linux/bits.h>
@@ -136,25 +136,52 @@ Signed-off-by: Sander Vanheule <sander@svanheule.net>
 +	return 0;
 +}
 +
++#define RTL8231_READY_MAX_RETRIES	10
++#define RTL8231_READY_WAIT_MS		50
++
 +static int rtl8231_init(struct device *dev, struct regmap *map)
 +{
 +	struct regmap_field *led_start;
 +	unsigned int started;
 +	unsigned int val;
 +	int err;
++	int retries;
 +
-+	err = regmap_read(map, RTL8231_REG_FUNC1, &val);
++	for (retries = 0; retries < RTL8231_READY_MAX_RETRIES; retries++) {
++		if (retries > 0)
++			msleep(RTL8231_READY_WAIT_MS);
++
++		err = regmap_read(map, RTL8231_REG_FUNC1, &val);
++		if (err) {
++			dev_dbg(dev, "READY_CODE read failed (attempt %d/%d): %d\n",
++				retries + 1, RTL8231_READY_MAX_RETRIES, err);
++			continue;
++		}
++
++		val = FIELD_GET(RTL8231_FUNC1_READY_CODE_MASK, val);
++		if (val == RTL8231_FUNC1_READY_CODE_VALUE)
++			break;
++
++		dev_dbg(dev, "RTL8231 not ready (attempt %d/%d): 0x%x != 0x%x\n",
++			retries + 1, RTL8231_READY_MAX_RETRIES,
++			val, RTL8231_FUNC1_READY_CODE_VALUE);
++	}
++
 +	if (err) {
-+		dev_err(dev, "failed to read READY_CODE\n");
++		dev_err(dev, "failed to read READY_CODE after %d attempts\n",
++			RTL8231_READY_MAX_RETRIES);
 +		return err;
 +	}
 +
-+	val = FIELD_GET(RTL8231_FUNC1_READY_CODE_MASK, val);
 +	if (val != RTL8231_FUNC1_READY_CODE_VALUE) {
-+		dev_err(dev, "RTL8231 not present or ready 0x%x != 0x%x\n",
-+			val, RTL8231_FUNC1_READY_CODE_VALUE);
++		dev_err(dev, "RTL8231 not present or ready 0x%x != 0x%x (after %d attempts)\n",
++			val, RTL8231_FUNC1_READY_CODE_VALUE,
++			RTL8231_READY_MAX_RETRIES);
 +		return -ENODEV;
 +	}
++
++	if (retries > 0)
++		dev_info(dev, "RTL8231 ready after %d attempts\n", retries + 1);
 +
 +	led_start = dev_get_drvdata(dev);
 +	err = regmap_field_read(led_start, &started);
