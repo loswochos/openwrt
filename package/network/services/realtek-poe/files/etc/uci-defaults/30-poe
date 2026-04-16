@@ -31,6 +31,7 @@ json_select poe
                                 set poe.@port[-1].name='$port'
                                 set poe.@port[-1].id='$id'
                                 set poe.@port[-1].enable='1'
+                                set poe.@port[-1].poe_plus='1'
                         EOF
                         let id=id+1
                 done
